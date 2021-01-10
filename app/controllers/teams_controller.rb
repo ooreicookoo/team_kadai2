@@ -1,7 +1,7 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_team, only: %i[show edit update destroy]
-  before_action :not_authorized, only: %i[edit destroy leader_change]
+  before_action :set_team, only: %i[show edit update destroy leader_change]
+  before_action :not_authorized, only: %i[edit destroy]
 
   def index
     @teams = Team.all
@@ -52,8 +52,8 @@ class TeamsController < ApplicationController
     assign_id = params[:assign_id]
     change_user_id = Assign.find(assign_id).user_id
     @team.update(owner_id: change_user_id)
+    TeamMailer.team_mail(@team).deliver
     redirect_to team_url(@team), notice: 'チームリーダーを変更しました'
-
   end
 
   private
@@ -69,6 +69,6 @@ class TeamsController < ApplicationController
   def not_authorized
     if current_user.id != @team.owner_id
       redirect_to root_path
-  end
+    end
   end
 end
